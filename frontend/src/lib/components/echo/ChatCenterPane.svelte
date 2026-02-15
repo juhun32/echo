@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import { marked } from 'marked';
 	import DOMPurify from 'isomorphic-dompurify';
 	import ScrollArea from '$lib/components/ui/ScrollArea.svelte';
@@ -18,6 +19,15 @@
 	} = $props();
 
 	let bottomAnchor = $state<HTMLDivElement | undefined>(undefined);
+	let typingMessageId = $state<string | null>(null);
+	let typingText = $state('');
+	let isTyping = $state(false);
+	let hasInitializedTypewriter = $state(false);
+	let typingTimer: ReturnType<typeof setTimeout> | null = null;
+
+	let lastAssistantMessage = $derived(
+		[...messages].reverse().find((message) => message.role === 'assistant')
+	);
 
 	marked.setOptions({ breaks: true, gfm: true });
 
@@ -29,6 +39,76 @@
 	export function scrollToBottom() {
 		bottomAnchor?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 	}
+
+	function clearTypingTimer() {
+		if (typingTimer) {
+			clearTimeout(typingTimer);
+			typingTimer = null;
+		}
+	}
+
+	function charStepForLength(length: number) {
+		if (length > 2000) return 12;
+		if (length > 1000) return 8;
+		if (length > 500) return 5;
+		return 3;
+	}
+
+	function startTypewriter(messageId: string, fullText: string) {
+		clearTypingTimer();
+		typingMessageId = messageId;
+		typingText = '';
+		isTyping = true;
+
+		let index = 0;
+		const step = charStepForLength(fullText.length);
+
+		const tick = () => {
+			index = Math.min(index + step, fullText.length);
+			typingText = fullText.slice(0, index);
+			bottomAnchor?.scrollIntoView({ block: 'end' });
+
+			if (index >= fullText.length) {
+				isTyping = false;
+				typingTimer = null;
+				return;
+			}
+
+			typingTimer = setTimeout(tick, 16);
+		};
+
+		tick();
+	}
+
+	function displayTextFor(message: { id: string; role: 'user' | 'assistant'; text: string }) {
+		if (message.role === 'assistant' && message.id === typingMessageId) {
+			return typingText;
+		}
+		return message.text;
+	}
+
+	$effect(() => {
+		const target = lastAssistantMessage;
+		if (!target) return;
+
+		if (!hasInitializedTypewriter) {
+			hasInitializedTypewriter = true;
+			typingMessageId = target.id;
+			typingText = target.text;
+			isTyping = false;
+			return;
+		}
+
+		if (typingMessageId === target.id) {
+			return;
+		}
+
+		startTypewriter(target.id, target.text);
+	});
+
+	onDestroy(() => {
+		clearTypingTimer();
+	});
 </script>
 
 <section class="relative flex min-w-0 flex-1 flex-col bg-background">
@@ -59,8 +139,11 @@
 								</div>
 							{/if}
 							<div class="markdown-content leading-5">
-								{@html renderMarkdown(message.text)}
+								{@html renderMarkdown(displayTextFor(message))}
 							</div>
+							{#if message.role === 'assistant' && message.id === typingMessageId && isTyping}
+								<div class="typing-caret mt-1 text-xs text-muted-foreground">▍</div>
+							{/if}
 						</div>
 					</div>
 				{/each}
@@ -141,5 +224,20 @@
 		border: 1px solid var(--border);
 		border-radius: 0.35rem;
 		background: color-mix(in oklab, var(--card) 85%, transparent);
+	}
+
+	.typing-caret {
+		animation: caret-blink 1s steps(1, end) infinite;
+	}
+
+	@keyframes caret-blink {
+		0%,
+		49% {
+			opacity: 1;
+		}
+		50%,
+		100% {
+			opacity: 0;
+		}
 	}
 </style>
