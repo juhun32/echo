@@ -28,7 +28,7 @@ func main() {
 	mux.HandleFunc("/cache-stats", handleCacheStats)
 
 	handler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodOptions},
 		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: false,
