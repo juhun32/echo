@@ -43,6 +43,9 @@
 	let selectedModel = 'gemini-2.5-flash-lite';
 	let leftSidebarCollapsed = false;
 	let rightSidebarCollapsed = false;
+	let chatCenterPaneRef: {
+		scrollToBottom?: () => void;
+	} | null = null;
 	let chatSessions: ChatSession[] = [
 		{
 			id: 'chat-1',
@@ -213,6 +216,10 @@ Useful for centering an element that is removed from the normal document flow.
 		rightSidebarCollapsed = !rightSidebarCollapsed;
 	}
 
+	function handleScrollToBottom() {
+		chatCenterPaneRef?.scrollToBottom?.();
+	}
+
 	onMount(() => {
 		document.documentElement.classList.toggle('dark', isDark);
 		void getExtractor();
@@ -262,8 +269,14 @@ Useful for centering an element that is removed from the normal document flow.
 					☰
 				</button>
 			</div>
-			<ChatCenterPane {messages} {loading} />
-			<FloatingInputBar bind:input bind:selectedModel disabled={loading} onSubmit={sendMessage} />
+			<ChatCenterPane bind:this={chatCenterPaneRef} {messages} {loading} />
+			<FloatingInputBar
+				bind:input
+				bind:selectedModel
+				disabled={loading}
+				onSubmit={sendMessage}
+				onScrollToBottom={handleScrollToBottom}
+			/>
 		</div>
 
 		{#if !rightSidebarCollapsed}

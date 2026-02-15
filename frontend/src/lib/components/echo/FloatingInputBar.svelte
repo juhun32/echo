@@ -2,12 +2,13 @@
 	import { tick } from 'svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import * as Select from '$lib/components/ui/select/index.js';
-	import { Send } from '@lucide/svelte';
+	import { ChevronDown, Send } from '@lucide/svelte';
 
 	export let input = '';
 	export let disabled = false;
 	export let selectedModel = 'gemini-2.5-flash-lite';
 	export let onSubmit: () => void = () => {};
+	export let onScrollToBottom: () => void = () => {};
 
 	const modelOptions = [
 		{ value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite' },
@@ -43,6 +44,17 @@
 	<div
 		class="pointer-events-auto relative mx-auto flex w-full max-w-3xl flex-col items-stretch gap-2 rounded-2xl border border-border bg-background px-4 py-3 dark:bg-card"
 	>
+		<div class="pointer-events-none absolute right-0 bottom-full z-20 mb-4 -translate-x-1/4">
+			<Button
+				size="icon"
+				variant="outline"
+				className="pointer-events-auto h-9 w-9 rounded-full bg-background"
+				on:click={onScrollToBottom}
+			>
+				<ChevronDown size={18} />
+			</Button>
+		</div>
+
 		<div
 			class="pointer-events-none absolute right-4 bottom-full left-4 z-10 mb-[1px] h-12 bg-gradient-to-t from-background via-background/80 to-transparent"
 		></div>

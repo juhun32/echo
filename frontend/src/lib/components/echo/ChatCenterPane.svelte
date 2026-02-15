@@ -2,8 +2,6 @@
 	import { marked } from 'marked';
 	import DOMPurify from 'isomorphic-dompurify';
 	import ScrollArea from '$lib/components/ui/ScrollArea.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import { ChevronDown } from '@lucide/svelte';
 
 	export let messages: Array<{
 		id: string;
@@ -23,7 +21,7 @@
 		return DOMPurify.sanitize(typeof rawHtml === 'string' ? rawHtml : String(rawHtml));
 	}
 
-	function scrollToBottom() {
+	export function scrollToBottom() {
 		bottomAnchor?.scrollIntoView({ behavior: 'smooth', block: 'end' });
 	}
 </script>
@@ -69,19 +67,6 @@
 		{/if}
 		<div bind:this={bottomAnchor}></div>
 	</ScrollArea>
-
-	{#if messages.length > 0 && bottomAnchor}
-		<div class="pointer-events-none absolute right-40 bottom-38 z-[70]">
-			<Button
-				size="icon"
-				variant="outline"
-				className="pointer-events-auto h-9 w-9 rounded-full border-border bg-background shadow-md"
-				on:click={scrollToBottom}
-			>
-				<ChevronDown size={18} />
-			</Button>
-		</div>
-	{/if}
 </section>
 
 <style>

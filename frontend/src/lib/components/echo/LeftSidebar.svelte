@@ -42,7 +42,7 @@
 					className="w-full justify-start truncate"
 					on:click={() => onSelectChat(chat.id)}
 				>
-					<p class="max-w-[200px] truncate">{chat.title}</p>
+					<p class="max-w-[180px] truncate">{chat.title}</p>
 				</Button>
 			{/each}
 		</div>
