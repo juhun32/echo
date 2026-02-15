@@ -3,16 +3,21 @@
 	import DOMPurify from 'isomorphic-dompurify';
 	import ScrollArea from '$lib/components/ui/ScrollArea.svelte';
 
-	export let messages: Array<{
-		id: string;
-		role: 'user' | 'assistant';
-		text: string;
-		source?: 'CACHE' | 'CLOUD';
-		showCard?: boolean;
-	}> = [];
-	export let loading = false;
+	let {
+		messages = [],
+		loading = false
+	}: {
+		messages?: Array<{
+			id: string;
+			role: 'user' | 'assistant';
+			text: string;
+			source?: 'CACHE' | 'CLOUD';
+			showCard?: boolean;
+		}>;
+		loading?: boolean;
+	} = $props();
 
-	let bottomAnchor: HTMLDivElement;
+	let bottomAnchor = $state<HTMLDivElement | undefined>(undefined);
 
 	marked.setOptions({ breaks: true, gfm: true });
 

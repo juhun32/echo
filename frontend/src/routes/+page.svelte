@@ -1,120 +1,40 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import LeftSidebar from '$lib/components/echo/LeftSidebar.svelte';
 	import ChatCenterPane from '$lib/components/echo/ChatCenterPane.svelte';
 	import RightWorkspacePane from '$lib/components/echo/RightWorkspacePane.svelte';
 	import FloatingInputBar from '$lib/components/echo/FloatingInputBar.svelte';
+
+	// ui
 	import Separator from '$lib/components/ui/Separator.svelte';
 
-	type Message = {
-		id: string;
-		role: 'user' | 'assistant';
-		text: string;
-		source?: 'CACHE' | 'CLOUD';
-		showCard?: boolean;
-	};
+	// lib
+	import type { Message, ChatApiResponse, FeatureExtractor } from '$lib/lib/chat';
+	import { MODEL_NAME } from '$lib/lib/chat';
+	import { BACKEND_URL } from '$lib/lib/constants';
 
-	type ChatSession = {
-		id: string;
-		title: string;
-		messages: Message[];
-	};
+	// demo import
+	import { chatSessions as importedChatSessions } from '$lib/lib/demo';
 
-	type ChatApiResponse = {
-		answer: string;
-		source: 'CACHE' | 'CLOUD';
-	};
-
-	type ExtractorOutput = {
-		data: Float32Array;
-	};
-
-	type FeatureExtractor = (
-		text: string,
-		options: { pooling: 'mean'; normalize: boolean }
-	) => Promise<ExtractorOutput>;
-
-	const API_URL = 'http://localhost:8080/chat';
-	const MODEL_NAME = 'Xenova/all-MiniLM-L6-v2';
-
-	let input = '';
-	let loading = false;
-	let isDark = true;
-	let selectedModel = 'gemini-2.5-flash-lite';
-	let leftSidebarCollapsed = false;
-	let rightSidebarCollapsed = false;
-	let chatCenterPaneRef: {
+	let input = $state('');
+	let loading = $state(false);
+	let isDark = $state(true);
+	let selectedModel = $state('gemini-2.5-flash-lite');
+	let leftSidebarCollapsed = $state(false);
+	let rightSidebarCollapsed = $state(false);
+	let chatCenterPaneRef = $state<{
 		scrollToBottom?: () => void;
-	} | null = null;
-	let chatSessions: ChatSession[] = [
-		{
-			id: 'chat-1',
-			title: 'How to center a div',
-			messages: [
-				{ id: 'msg-1', role: 'user', text: 'How do I center a div?' },
-				{
-					id: 'msg-2',
-					role: 'assistant',
-					text: `Centering a \`div\` element is a very common task in web development. There are several effective methods, and the best one to use often depends on the context.
+	} | null>(null);
 
-### 1. Using \`margin: auto\`
-This is the classic method for centering a block-level element horizontally.
-* **Requirement:** The \`div\` must have a defined \`width\`.
-* **How it works:** \`margin: auto\` distributes remaining horizontal space equally.
+	let chatSessions = $state(importedChatSessions);
+	let activeChatId = $state(importedChatSessions[0]?.id ?? '');
 
-**CSS Example:**
-\`.centered-div { width: 50%; margin: 0 auto; }\`
+	let recentChats = $derived(
+		chatSessions.map((session) => ({ id: session.id, title: session.title }))
+	);
+	let activeChat = $derived(chatSessions.find((session) => session.id === activeChatId));
+	let messages = $derived(activeChat?.messages ?? []);
 
----
-
-### 2. Using Flexbox
-Flexbox makes centering (both horizontally and vertically) incredibly easy.
-
-* **How it works:** Apply properties to the parent container.
-* **Properties:**
-    * \`display: flex;\`
-    * \`justify-content: center;\` (Horizontal)
-    * \`align-items: center;\` (Vertical)
-
----
-
-### 3. Using CSS Grid
-CSS Grid is a powerful system that excels at centering with very little code.
-
-* **How it works:** Use the \`place-items\` shorthand on the parent.
-* **Properties:**
-    * \`display: grid;\`
-    * \`place-items: center;\`
-
----
-
-### 4. Absolute Positioning and Transform
-Useful for centering an element that is removed from the normal document flow.
-
-* **Requirement:** Parent must have \`position: relative;\`.
-* **How it works:**
-    1. Set child to \`position: absolute; top: 50%; left: 50%;\`.
-    2. Use \`transform: translate(-50%, -50%);\` to shift it back to the true center.
-
----
-
-### Summary: Which one to choose?
-* **Simple horizontal:** \`margin: auto\`.
-* **Modern layouts:** **Flexbox** or **Grid** (Recommended).
-* **Overlays/Modals:** **Absolute Positioning**.
-
-**Note:** \`text-align: center;\` centers **inline** content (text/images) but not the \`div\` container itself.`
-				}
-			]
-		}
-	];
-	let activeChatId = chatSessions[0].id;
-
-	$: recentChats = chatSessions.map((session) => ({ id: session.id, title: session.title }));
-	$: activeChat = chatSessions.find((session) => session.id === activeChatId);
-	$: messages = activeChat?.messages ?? [];
-
-	let extractorPromise: Promise<FeatureExtractor> | null = null;
+	let extractorPromise = $state<Promise<FeatureExtractor> | null>(null);
 
 	async function getExtractor(): Promise<FeatureExtractor> {
 		if (!extractorPromise) {
@@ -165,7 +85,7 @@ Useful for centering an element that is removed from the normal document flow.
 
 		try {
 			const vector = await embed(text);
-			const response = await fetch(API_URL, {
+			const response = await fetch(`${BACKEND_URL}/chat`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ text, vector, model: selectedModel })
@@ -220,7 +140,7 @@ Useful for centering an element that is removed from the normal document flow.
 		chatCenterPaneRef?.scrollToBottom?.();
 	}
 
-	onMount(() => {
+	$effect(() => {
 		document.documentElement.classList.toggle('dark', isDark);
 		void getExtractor();
 	});
@@ -252,7 +172,7 @@ Useful for centering an element that is removed from the normal document flow.
 			<div class="pointer-events-none absolute top-4 left-4 z-30">
 				<button
 					type="button"
-					on:click={toggleLeftSidebar}
+					onclick={toggleLeftSidebar}
 					class="pointer-events-auto inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-sm"
 					aria-label={leftSidebarCollapsed ? 'Show left sidebar' : 'Hide left sidebar'}
 				>
@@ -262,7 +182,7 @@ Useful for centering an element that is removed from the normal document flow.
 			<div class="pointer-events-none absolute top-4 right-4 z-30">
 				<button
 					type="button"
-					on:click={toggleRightSidebar}
+					onclick={toggleRightSidebar}
 					class="pointer-events-auto inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-sm"
 					aria-label={rightSidebarCollapsed ? 'Show right sidebar' : 'Hide right sidebar'}
 				>

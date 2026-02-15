@@ -1,68 +1,31 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
-	import { Book, Cloud, Database, Info, Leaf, RefreshCw } from '@lucide/svelte';
+	import { Cloud, Database, Leaf, RefreshCw } from '@lucide/svelte';
+	import type { CacheEntry, CacheStatsResponse, CacheUse } from '$lib/lib/cache';
+	import { BACKEND_URL } from '$lib/lib/constants';
 
-	type CacheEntry = {
-		question: string;
-		answer: string;
-		source: string;
-		createdAt: string;
-	};
-
-	type CacheUse = {
-		question: string;
-		answer: string;
-		source: string;
-		timestamp: string;
-		tokensSaved: number;
-		energySavedWh: number;
-		co2SavedG: number;
-	};
-
-	type CacheStatsResponse = {
-		uploading: boolean;
-		lastUploadAt?: string;
-		lastDownloadAt?: string;
-		metrics: {
-			cacheHits: number;
-			localCacheHits: number;
-			s3CacheHits: number;
-			estimatedTokensSaved: number;
-			energySavedWh: number;
-			co2SavedG: number;
-		};
-		constants: {
-			defaultKWhPer1KTokens: number;
-			gridCO2gPerKWh: number;
-			modelKWhPer1KTokens: Record<string, number>;
-		};
-		localRamCache: CacheEntry[];
-		s3CacheUsed: CacheUse[];
-	};
-
-	let localRamCache: CacheEntry[] = [];
-	let s3CacheUsed: CacheUse[] = [];
-	let metrics: CacheStatsResponse['metrics'] = {
+	let localRamCache = $state<CacheEntry[]>([]);
+	let s3CacheUsed = $state<CacheUse[]>([]);
+	let metrics = $state<CacheStatsResponse['metrics']>({
 		cacheHits: 0,
 		localCacheHits: 0,
 		s3CacheHits: 0,
 		estimatedTokensSaved: 0,
 		energySavedWh: 0,
 		co2SavedG: 0
-	};
-	let constants: CacheStatsResponse['constants'] = {
+	});
+	let constants = $state<CacheStatsResponse['constants']>({
 		defaultKWhPer1KTokens: 0.00035,
 		gridCO2gPerKWh: 475,
 		modelKWhPer1KTokens: {}
-	};
-	let uploading = false;
-	let lastUploadAt = '';
-	let lastDownloadAt = '';
-	let loading = false;
-	let interval: ReturnType<typeof setInterval> | undefined;
+	});
+	let uploading = $state(false);
+	let lastUploadAt = $state('');
+	let lastDownloadAt = $state('');
+	let loading = $state(false);
+	let interval = $state<ReturnType<typeof setInterval> | undefined>(undefined);
 
-	// Maximum words to display for questions/answers. Can be overridden by parent.
-	export let maxWords: number = 15;
+	// Maximum words to display for questions/answers
+	let { maxWords = 15 }: { maxWords?: number } = $props();
 
 	function truncateWords(text: string, max: number) {
 		if (!text) return '';
@@ -71,15 +34,10 @@
 		return parts.slice(0, max).join(' ') + '…';
 	}
 
-	// Renderable formula bullets: uses server-calculated metrics and client-side constants for display
-	function perModelEntries() {
-		return Object.entries(constants.modelKWhPer1KTokens || {});
-	}
-
 	async function fetchCacheStats() {
 		loading = true;
 		try {
-			const res = await fetch('http://localhost:8080/cache-stats');
+			const res = await fetch(`${BACKEND_URL}/cache-stats`);
 			if (!res.ok) {
 				throw new Error(`Cache stats request failed: ${res.status}`);
 			}
@@ -106,15 +64,14 @@
 		}
 	}
 
-	onMount(() => {
+	$effect(() => {
 		fetchCacheStats();
 		interval = setInterval(fetchCacheStats, 5000);
-	});
-
-	onDestroy(() => {
-		if (interval) {
-			clearInterval(interval);
-		}
+		return () => {
+			if (interval) {
+				clearInterval(interval);
+			}
+		};
 	});
 </script>
 
@@ -128,7 +85,7 @@
 				</h2>
 			</div>
 			<button
-				on:click={fetchCacheStats}
+				onclick={() => fetchCacheStats()}
 				class="rounded-full p-2 transition-colors hover:bg-white/5"
 				title="Refresh Cache Stats"
 			>

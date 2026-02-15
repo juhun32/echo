@@ -4,21 +4,30 @@
 	import * as Select from '$lib/components/ui/select/index.js';
 	import { ChevronDown, Send } from '@lucide/svelte';
 
-	export let input = '';
-	export let disabled = false;
-	export let selectedModel = 'gemini-2.5-flash-lite';
-	export let onSubmit: () => void = () => {};
-	export let onScrollToBottom: () => void = () => {};
+	let {
+		input = $bindable(''),
+		disabled = false,
+		selectedModel = $bindable('gemini-2.5-flash-lite'),
+		onSubmit = () => {},
+		onScrollToBottom = () => {}
+	}: {
+		input: string;
+		disabled?: boolean;
+		selectedModel: string;
+		onSubmit?: () => void;
+		onScrollToBottom?: () => void;
+	} = $props();
 
 	const modelOptions = [
 		{ value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite' },
 		{ value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' }
 	];
 
-	$: triggerContent =
-		modelOptions.find((model) => model.value === selectedModel)?.label ?? 'Select model';
+	let triggerContent = $derived(
+		modelOptions.find((model) => model.value === selectedModel)?.label ?? 'Select model'
+	);
 
-	let textareaEl: HTMLTextAreaElement;
+	let textareaEl = $state<HTMLTextAreaElement | undefined>(undefined);
 	const maxInputHeight = 220;
 
 	async function resizeInput() {
@@ -30,7 +39,9 @@
 		textareaEl.style.overflowY = textareaEl.scrollHeight > maxInputHeight ? 'auto' : 'hidden';
 	}
 
-	$: void resizeInput();
+	$effect(() => {
+		void resizeInput();
+	});
 
 	function onEnter(event: KeyboardEvent) {
 		if (event.key === 'Enter' && !event.shiftKey) {
@@ -63,8 +74,8 @@
 			<textarea
 				bind:this={textareaEl}
 				bind:value={input}
-				on:keydown={onEnter}
-				on:input={resizeInput}
+				onkeydown={onEnter}
+				oninput={resizeInput}
 				rows="1"
 				placeholder="Ask Gemini..."
 				class="min-h-9 flex-1 resize-none bg-transparent p-2 text-sm leading-6 outline-none"

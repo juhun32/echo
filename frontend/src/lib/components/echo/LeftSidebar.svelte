@@ -2,19 +2,36 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import ScrollArea from '$lib/components/ui/ScrollArea.svelte';
 	import Separator from '$lib/components/ui/Separator.svelte';
-	import { Lightbulb, Moon, Plus, Sun } from '@lucide/svelte';
+	import { Lightbulb, Moon, Plus, Settings, Sun } from '@lucide/svelte';
 
-	export let recentChats: Array<{ id: string; title: string }> = [];
-	export let activeChatId = '';
-	export let isDark = true;
-	export let onNewChat: () => void = () => {};
-	export let onSelectChat: (id: string) => void = () => {};
-	export let onToggleTheme: () => void = () => {};
+	let {
+		recentChats = [],
+		activeChatId = '',
+		isDark = true,
+		onNewChat = () => {},
+		onSelectChat = () => {},
+		onToggleTheme = () => {}
+	}: {
+		recentChats?: Array<{ id: string; title: string }>;
+		activeChatId?: string;
+		isDark?: boolean;
+		onNewChat?: () => void;
+		onSelectChat?: (id: string) => void;
+		onToggleTheme?: () => void;
+	} = $props();
 </script>
 
 <aside class="flex h-full w-[260px] shrink-0 flex-col bg-card dark:text-[#E3E3E3]">
 	<div class="px-3 py-4">
-		<!-- <div class="text mb-3 font-medium tracking-tight">Echo (Demo)</div> -->
+		<div class="mb-2 flex items-center justify-between">
+			<Button className="h-8 w-8 rounded-full" variant="outline" size="icon">
+				<Settings size={16} />
+			</Button>
+			<div class="flex items-baseline justify-end gap-1 px-3 tracking-tight">
+				<p class="text-xs">Welcome,</p>
+				User
+			</div>
+		</div>
 		<div class="flex items-center justify-between gap-3">
 			<div>
 				<Button className="h-8 w-8" variant="outline" size="icon" on:click={onToggleTheme}>
