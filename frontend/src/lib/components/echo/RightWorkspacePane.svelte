@@ -75,7 +75,7 @@
 	});
 </script>
 
-<aside class="flex h-full w-[360px] shrink-0 flex-col border-l border-white/5 bg-card">
+<aside class="flex h-full w-[85vw] shrink-0 flex-col border-l border-white/5 bg-card lg:w-[360px]">
 	<div class="border-b p-4 dark:border-white/5">
 		<div class="mb-2 flex items-center justify-between">
 			<div>
@@ -132,7 +132,7 @@
 	</div>
 
 	<div class="min-h-0 flex-1 border-b dark:border-white/5">
-		<div class="px-4 pt-3 pb-2 text-xs text-gray-400">Local RAM Cache</div>
+		<div class="px-4 pt-3 pb-2 text-xs text-gray-400">Cache Saved</div>
 		<div class="h-[calc(100%-34px)] space-y-2 overflow-y-auto px-3 pb-3">
 			{#if localRamCache.length === 0}
 				<div

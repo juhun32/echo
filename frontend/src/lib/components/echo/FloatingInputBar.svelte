@@ -8,12 +8,14 @@
 		input = $bindable(''),
 		disabled = false,
 		selectedModel = $bindable('gemini-2.5-flash-lite'),
+		focusTrigger = 0,
 		onSubmit = () => {},
 		onScrollToBottom = () => {}
 	}: {
 		input: string;
 		disabled?: boolean;
 		selectedModel: string;
+		focusTrigger?: number;
 		onSubmit?: () => void;
 		onScrollToBottom?: () => void;
 	} = $props();
@@ -43,6 +45,14 @@
 		void resizeInput();
 	});
 
+	$effect(() => {
+		focusTrigger;
+		if (!textareaEl) return;
+		textareaEl.focus();
+		const position = textareaEl.value.length;
+		textareaEl.setSelectionRange(position, position);
+	});
+
 	function onEnter(event: KeyboardEvent) {
 		if (event.key === 'Enter' && !event.shiftKey) {
 			event.preventDefault();
@@ -63,6 +73,7 @@
 				on:click={onScrollToBottom}
 			>
 				<ChevronDown size={18} />
+				<span class="sr-only">Scroll to latest</span>
 			</Button>
 		</div>
 
@@ -78,7 +89,7 @@
 				oninput={resizeInput}
 				rows="1"
 				placeholder="Ask Gemini..."
-				class="min-h-9 flex-1 resize-none bg-transparent p-2 text-sm leading-6 outline-none"
+				class="min-h-9 flex-1 resize-none bg-transparent p-2 pr-28 text-sm leading-6 outline-none"
 			></textarea>
 		</div>
 		<div class="flex w-full items-center justify-end gap-2">

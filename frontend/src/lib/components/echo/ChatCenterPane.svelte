@@ -126,7 +126,7 @@
 			<div class="mx-auto w-full max-w-3xl space-y-6 pb-20">
 				{#each messages as message}
 					<div
-						class={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start pl-8'}`}
+						class={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start lg:pl-8'}`}
 					>
 						<div
 							class={`max-w-[90%] rounded-xl px-4 text-sm ${message.role === 'user' ? 'bg-card' : 'bg-background'}`}
