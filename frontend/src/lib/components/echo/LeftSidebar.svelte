@@ -2,7 +2,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import ScrollArea from '$lib/components/ui/ScrollArea.svelte';
 	import Separator from '$lib/components/ui/Separator.svelte';
-	import { Moon, Plus, Sun } from '@lucide/svelte';
+	import { Lightbulb, Moon, Plus, Sun } from '@lucide/svelte';
 
 	export let recentChats: Array<{ id: string; title: string }> = [];
 	export let activeChatId = '';
@@ -13,7 +13,7 @@
 </script>
 
 <aside class="flex h-full w-[260px] shrink-0 flex-col bg-card dark:text-[#E3E3E3]">
-	<div class="p-4">
+	<div class="px-3 py-4">
 		<!-- <div class="text mb-3 font-medium tracking-tight">Echo (Demo)</div> -->
 		<div class="flex items-center justify-between gap-3">
 			<div>
@@ -34,7 +34,7 @@
 	<Separator />
 
 	<div class="px-4 pt-3 pb-2 text-xs tracking-wide text-gray-500">Chats</div>
-	<ScrollArea className="min-h-0 flex-1 px-2 pb-3">
+	<ScrollArea className="min-h-0 flex-1 px-3 pb-3">
 		<div class="space-y-1">
 			{#each recentChats as chat}
 				<Button
@@ -42,7 +42,7 @@
 					className="w-full justify-start truncate"
 					on:click={() => onSelectChat(chat.id)}
 				>
-					{chat.title}
+					<p class="max-w-[200px] truncate">{chat.title}</p>
 				</Button>
 			{/each}
 		</div>
@@ -50,8 +50,8 @@
 
 	<Separator />
 
-	<div class="flex gap-3 p-4">
-		<div class="text-xs tracking-wide text-gray-500">Tip</div>
+	<div class="flex gap-2 p-3">
+		<div class="text-xs tracking-wide text-gray-500"><Lightbulb size={14} /></div>
 		<div class="bg-card text-xs">
 			Echo uses caching to save energy. Try asking the same question twice and see the difference!
 		</div>
