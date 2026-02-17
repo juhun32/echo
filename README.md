@@ -1,1 +1,1 @@
-# echo
+distributed caching layer designed to optimize LLM inference. By moving vector embedding generation to the client side and synchronizing a shared semantic cache via AWS S3, it eliminates redundant cloud computation, reduce latency and API costs for repeated queries. 
